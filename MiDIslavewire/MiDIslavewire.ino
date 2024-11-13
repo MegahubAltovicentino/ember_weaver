@@ -7,7 +7,7 @@
 
 
 #define PIN        7
-#define NUMPIXELS 80
+#define NUMPIXELS 34
 
 
 int r = 150;
