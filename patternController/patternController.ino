@@ -24,9 +24,12 @@
 #ifdef __AVR__
  #include <avr/power.h> // Required for 16 MHz Adafruit Trinket
 #endif
+#include <Wire.h>
 
 #define PIXEL_PIN 7 
 #define PIXEL_COUNT 80  
+#define I2C_CHANNEL 9
+#define DEBUG true
 
 Adafruit_NeoPixel strip(PIXEL_COUNT, PIXEL_PIN, NEO_GRB + NEO_KHZ800);
 int mode = 0;    // Currently-active animation mode, 0-9
@@ -36,6 +39,40 @@ void setup() {
   Serial.begin(9600);
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
+  Wire.begin(I2C_CHANNEL);
+  Wire.onReceive(receiveMessage); 
+}
+
+void receiveMessage(int bytes) {  
+  if (bytes >= 3) {
+    char msg = Wire.read();  // Read the message (first byte)
+    byte data1 = Wire.read();  // Read data1 (second byte)
+    byte data2 = Wire.read();  // Read data2 (third byte)
+
+    if (DEBUG) {
+      Serial.print("Received Message: ");
+      Serial.print("msg: ");
+      Serial.print(msg);
+      Serial.print(" data1: ");
+      Serial.print(data1);
+      Serial.print(" data2: ");
+      Serial.println(data2);
+    }
+    if (msg == 'n') {
+      Serial.print("Received note message: ");
+      Serial.print(data1);
+      Serial.print(" ");
+      Serial.println(data2);
+    } 
+    else if (msg == 'c') {
+      Serial.println("Received control message");
+      Serial.print(data1);
+      Serial.print(" ");
+      Serial.println(data2);
+    }
+  } else {
+    Serial.println("Error: Insufficient bytes received.");
+  }  
 }
 
 void loop() {
@@ -249,5 +286,3 @@ uint32_t pickColor() {
   }
   Serial.println("invalid input");
 }
-
-
